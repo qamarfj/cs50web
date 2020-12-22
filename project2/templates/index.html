@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.4/socket.io.min.js" integrity="sha512-Jq1JnVXlkYQOYQpz31qIV/0l67d97J9I6sbILtfiSYX00Isr2zK7XDRmHW8d2iBTwNZfL7sHkHGT0EzLs90jdw==" crossorigin="anonymous"></script>
+        
+        <script src="{{ url_for('static', filename='index.js') }}"></script>    
+    <title>Flask_Chat_App</title>
+</head>
+
+<body>
+
+    <h3 style='color: #ccc;font-size: 30px;' id="h3">No message yet..</h3>
+    <div id="message_holder"></div>
+    <ul id="UL"></ul>
+
+    <!--<form action="" method="POST">-->
+        <input type="text" id="user-name" placeholder="User Name" />
+        <input type="text" id="new-message" placeholder="Messages" />
+        <button id="send-button">Send Message</button>
+  <!--  </form>-->
+
+   
+</body>
+
+</html>
