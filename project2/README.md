@@ -1,6 +1,7 @@
 # Project 2
 
 Web Programming with Python and JavaScript
+
 Project 2: Flack
 Objectives
 Learn to use JavaScript to run code server-side.
