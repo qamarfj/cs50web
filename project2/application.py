@@ -7,6 +7,10 @@ from flask_socketio import SocketIO, emit
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 socketio = SocketIO(app)
+users = []  # each element is {username:username,activechanle:chanlename}
+# each elemet is {chanelname:chanlename, users:[] each elemnt is username } in activechanel
+activechanel = []
+messages = []  # each element {user:usernaem, message:textmessage}
 
 
 @app.route("/")
@@ -15,9 +19,18 @@ def index():
     return render_template("index.html")
 
 
-@socketio.on("user connected")
-def userConnected():
-    print('newuser conncted')
+@socketio.on("login")
+def login(data):
+    users.append(data["userName"])
+    print('newuser login')
+    emit("announce message", messages, broadcast=True)
+
+
+@socketio.on("handshake")
+def handshake(data):
+    user = data["userName"]
+    activechanel = data["activechanel"]
+    emit("announce message", messages, broadcast=True)
 
 
 @socketio.on("mew message")
@@ -27,10 +40,10 @@ def vote(data, methods=['GET', 'POST']):
 
     currentTime = datetime.datetime.now().strftime("%H:%M:%S")
     serverData = {'userName': userName, 'newMessage': newMessage,
-                  'currentTime': currentTime}
-
+                  'messagetTime': currentTime}
+    messages.append(serverData)
     print("submit vote call: ", data)
-    emit("announce message", serverData, broadcast=True)
+    emit("announce message", messages, broadcast=True)
 
 
 if __name__ == '__main__':

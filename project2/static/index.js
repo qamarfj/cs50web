@@ -1,19 +1,49 @@
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("lin2");
+  //username is saved then remove login section
+  const loginDiv = document.getElementById("login");
+  let userName = localStorage.getItem("userName");
+  if (userName) loginDiv.remove();
+
   // Connect to websocket
+  // @ts-ignore
   const socket = io.connect("http://" + document.domain + ":" + location.port);
-  console.log("lin5 socket created");
+
   // When connected, configure buttons
   socket.on("connect", function () {
     //anouse user connection
-    console.log("lin9 connected");
+    //if user exists
+    function handshake() {
+      //const activeChannel = localStorage.get("activeChannel");
+      socket.emit("handshake", {
+        userName: userName,
+        //activechanel: activeChannel,
+      });
+    }
+    //login function
+    function login() {
+      document.getElementById("btn-login").addEventListener("click", () => {
+        userName = document.getElementById("user-name").value;
+        localStorage.setItem("userName", userName);
+        //call to login
+        socket.emit("login", {
+          userName: userName,
+        });
+        //remove login section
+        loginDiv.remove();
+      });
+    }
+    if (userName) {
+      handshake();
+    } else {
+      login();
+    }
 
     document.getElementById("send-button").addEventListener("click", () => {
       console.log("lin12 button clicked");
-      const userNameInput = document.getElementById("user-name");
+      //const userNameInput = document.getElementById("user-name");
       const newMessageInput = document.getElementById("new-message");
       const clientData = {
-        userName: userNameInput.value,
+        userName: userName,
         newMessage: newMessageInput.value,
       };
 
@@ -23,18 +53,22 @@ document.addEventListener("DOMContentLoaded", () => {
       newMessageInput.focus();
     });
     // When a new message is announced, add to the unordered list
-    socket.on("announce message", function (serverData) {
-      console.log(serverData);
-      if (typeof serverData.userName !== "undefined") {
+    socket.on("announce message", function (data) {
+      console.log(data);
+      if (data.length > 0) {
         const h3 = document.getElementById("h3");
         if (h3) h3.remove();
       }
-
-      console.log("lin28 data got");
       const ul = document.getElementById("UL");
-      const newLi = document.createElement("li");
-      newLi.textContent = `${serverData.userName} said: ${serverData.newMessage}`;
-      ul.appendChild(newLi);
+      while (ul.firstChild) {
+        ul.removeChild(ul.firstChild);
+      }
+
+      data.forEach((serverData) => {
+        const newLi = document.createElement("li");
+        newLi.textContent = `${serverData.userName} said: ${serverData.newMessage} at: ${serverData.messagetTime}`;
+        ul.appendChild(newLi);
+      });
     });
   });
 });
