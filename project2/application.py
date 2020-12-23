@@ -10,7 +10,7 @@ socketio = SocketIO(app)
 users = []  # each element is {username:username,activechanle:chanlename}
 # each elemet is {chanelname:chanlename, users:[] each elemnt is username } in activechanel
 activechanel = []
-messages = []  # each element {user:usernaem, message:textmessage}
+messages = {}  # each element {"channel", [textmessage]}
 
 
 @app.route("/")
@@ -30,7 +30,10 @@ def login(data):
     currentTime = datetime.datetime.now().strftime("%H:%M:%S")
     serverData = {'userName': userName, 'newMessage': newMessage,
                   'messagetTime': currentTime}
-
+    if channel in messages:
+        messages[channel].append(serverData)
+    else:
+        messages[channel] = [serverData]
     emit("announce login", serverData, room=channel)
 
 
@@ -44,7 +47,11 @@ def handshake(data):
     currentTime = datetime.datetime.now().strftime("%H:%M:%S")
     serverData = {'userName': userName, 'newMessage': newMessage,
                   'messagetTime': currentTime}
-    messages.append(serverData)
+    if channel in messages:
+        messages[channel].append(serverData)
+    else:
+        messages[channel] = [serverData]
+
     emit("announce login", serverData, room=channel)
 
 
@@ -56,9 +63,13 @@ def vote(data, methods=['GET', 'POST']):
     currentTime = datetime.datetime.now().strftime("%H:%M:%S")
     serverData = {'userName': userName, 'newMessage': newMessage,
                   'messagetTime': currentTime}
-    messages.append(serverData)
-    print("submit vote call: ", data)
-    emit("announce message", messages, room=channel)
+
+    if channel in messages:
+        messages[channel].append(serverData)
+    else:
+        messages[channel] = [serverData]
+    print("new message call: ", data)
+    emit("announce message", messages[channel], room=channel)
 
 
 if __name__ == '__main__':
