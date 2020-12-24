@@ -41,6 +41,25 @@ def login(data):
     emit("announce channels", channels,  broadcast=True)
 
 
+@socketio.on("create channel")
+def handshake(data):
+    channel = data["activechanel"]
+    join_room(channel)
+    userName = data["userName"]
+    newMessage = "has join room "+channel
+    currentTime = datetime.datetime.now().strftime("%H:%M:%S")
+    serverData = {'userName': userName, 'newMessage': newMessage,
+                  'messagetTime': currentTime}
+    if channel in messages:
+        messages[channel].append(serverData)
+    else:
+        messages[channel] = [serverData]
+    if channel not in channels:
+        channels.append(channel)
+    emit("announce login", serverData, room=channel)
+    emit("announce channels", channels,  broadcast=True)
+
+
 @socketio.on("join channel")
 def handshake(data):
     channel = data["activechanel"]

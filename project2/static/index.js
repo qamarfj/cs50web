@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let userName = localStorage.getItem("userName");
   let activeChannel = localStorage.getItem("activeChannel");
   if (userName) loginDiv.remove();
+  else document.getElementById("create-channel").hidden = true;
 
   // Connect to websocket
   // @ts-ignore
@@ -27,15 +28,27 @@ document.addEventListener("DOMContentLoaded", () => {
           //call to login
           //remove login section
           loginDiv.remove();
+          document.getElementById("create-channel").hidden = false;
         });
       }
+
       socket.emit("login", {
         userName: userName,
         activechanel: activeChannel,
       });
     }
     login();
-
+    document.getElementById("btn-create").addEventListener("click", () => {
+      const channelInput = document.getElementById("input-channel");
+      const channel = channelInput.value;
+      localStorage.setItem("activeChannel", channel);
+      activeChannel = channel;
+      socket.emit("create channel", {
+        userName: userName,
+        activechanel: activeChannel,
+      });
+      channelInput.value = "";
+    });
     document.getElementById("send-button").addEventListener("click", () => {
       console.log("lin12 button clicked");
       //const userNameInput = document.getElementById("user-name");
