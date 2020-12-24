@@ -9,7 +9,7 @@ app.config["SECRET_KEY"] = os.getenv("SECRET_KEY")
 socketio = SocketIO(app)
 users = []  # each element is {username:username,activechanle:chanlename}
 # each elemet is {chanelname:chanlename, users:[] each elemnt is username } in activechanel
-activechanel = []
+channels = []
 messages = {}  # each element {"channel", [textmessage]}
 
 
@@ -34,14 +34,17 @@ def login(data):
         messages[channel].append(serverData)
     else:
         messages[channel] = [serverData]
+    if channel not in channels:
+        channels.append(channel)
+
     emit("announce login", serverData, room=channel)
+    emit("announce channels", channels,  broadcast=True)
 
 
-@socketio.on("handshake")
+@socketio.on("join channel")
 def handshake(data):
     channel = data["activechanel"]
     join_room(channel)
-    print('newuser login')
     userName = data["userName"]
     newMessage = "has join room "+channel
     currentTime = datetime.datetime.now().strftime("%H:%M:%S")
@@ -51,11 +54,13 @@ def handshake(data):
         messages[channel].append(serverData)
     else:
         messages[channel] = [serverData]
-
+    if channel not in channels:
+        channels.append(channel)
     emit("announce login", serverData, room=channel)
+    emit("announce channels", channels,  broadcast=True)
 
 
-@socketio.on("mew message")
+@ socketio.on("mew message")
 def vote(data, methods=['GET', 'POST']):
     userName = data["userName"]
     newMessage = data["newMessage"]
@@ -68,8 +73,10 @@ def vote(data, methods=['GET', 'POST']):
         messages[channel].append(serverData)
     else:
         messages[channel] = [serverData]
-    print("new message call: ", data)
+    print("new message call: ", channels)
+
     emit("announce message", messages[channel], room=channel)
+#    emit("announce chanels", channels,  broadcast=True)
 
 
 if __name__ == '__main__':

@@ -12,38 +12,29 @@ document.addEventListener("DOMContentLoaded", () => {
   // When connected, configure buttons
   socket.on("connect", function () {
     //anouse user connection
-    //if user exists
-    function handshake() {
-      socket.emit("handshake", {
+    //if user does not  exists
+    function login() {
+      if (!userName) {
+        document.getElementById("btn-login").addEventListener("click", () => {
+          const user = document.getElementById("user-name").value;
+          const channelName = document.getElementById("user-channel").value;
+          //store in local
+          localStorage.setItem("userName", user);
+          localStorage.setItem("activeChannel", channelName);
+          //assign to variables
+          userName = user;
+          activeChannel = channelName;
+          //call to login
+          //remove login section
+          loginDiv.remove();
+        });
+      }
+      socket.emit("login", {
         userName: userName,
         activechanel: activeChannel,
       });
     }
-    //login function
-    function login() {
-      document.getElementById("btn-login").addEventListener("click", () => {
-        const user = document.getElementById("user-name").value;
-        const channelName = document.getElementById("user-channel").value;
-        //store in local
-        localStorage.setItem("userName", user);
-        localStorage.setItem("activeChannel", channelName);
-        //assign to variables
-        userName = user;
-        activeChannel = channelName;
-        //call to login
-        socket.emit("login", {
-          userName: userName,
-          activechanel: activeChannel,
-        });
-        //remove login section
-        loginDiv.remove();
-      });
-    }
-    if (userName) {
-      handshake();
-    } else {
-      login();
-    }
+    login();
 
     document.getElementById("send-button").addEventListener("click", () => {
       console.log("lin12 button clicked");
@@ -60,6 +51,7 @@ document.addEventListener("DOMContentLoaded", () => {
       newMessageInput.value = "";
       newMessageInput.focus();
     });
+
     // When a new login is announced, add to the unordered list
     socket.on("announce login", function (serverData) {
       console.log(serverData);
@@ -71,15 +63,50 @@ document.addEventListener("DOMContentLoaded", () => {
       newLi.textContent = `${serverData.userName} : ${serverData.newMessage} at: ${serverData.messagetTime}`;
       ul.appendChild(newLi);
     });
+    ///listernerr to channels
+    function addlistenertochannels() {
+      const listitems = document.querySelectorAll(".channel");
+      listitems.forEach((chanel) =>
+        chanel.addEventListener("dblclick", function () {
+          const channel = this.innerHTML;
+          localStorage.setItem("activeChannel", channel);
+          activeChannel = channel;
+          socket.emit("join channel", {
+            userName: userName,
+            activechanel: activeChannel,
+          });
+        })
+      );
+    }
+    //new channel anouse
     // When a new message is announced, add to the unordered list
-    socket.on("announce message", function (data) {
-      console.log(data);
+    socket.on("announce channels", function (channels) {
+      const listitems = document.querySelectorAll(".channel");
+      if (listitems.length > 0) {
+        listitems.forEach((chanel) =>
+          chanel.removeEventListener("dblclick", function () {})
+        );
+      }
+      const channelsList = document.getElementById("channel-list");
+      while (channelsList.firstChild) {
+        channelsList.removeChild(channelsList.firstChild);
+      }
+      channels.forEach((channel) => {
+        const newLi = document.createElement("li");
+        newLi.className = "channel";
+        newLi.textContent = `${channel}`;
+        channelsList.appendChild(newLi);
+      });
+      addlistenertochannels();
+    });
+
+    // When a new message is announced, add to the unordered list
+    socket.on("announce message", function (messages) {
       const ul = document.getElementById("UL");
       while (ul.firstChild) {
         ul.removeChild(ul.firstChild);
       }
-
-      data.forEach((serverData) => {
+      messages.forEach((serverData) => {
         const newLi = document.createElement("li");
         newLi.textContent = `${serverData.userName} said: ${serverData.newMessage} at: ${serverData.messagetTime}`;
         ul.appendChild(newLi);

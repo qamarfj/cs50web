@@ -1,0 +1,8 @@
+.channel:hover {
+  font-weight: bold;
+  color: blue;
+}
+.channel:active {
+  color: brown;
+  font-size: large;
+}
